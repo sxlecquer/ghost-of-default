@@ -1,3 +1,4 @@
+import joblib
 import numpy as np
 import pandas as pd
 from sklearn.pipeline import Pipeline
@@ -5,10 +6,10 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.linear_model import LogisticRegression
-import joblib
+from backend.app.core.utils import BASE_DIR
 
 
-def load_data(path: str = '../default_credit_card.csv') -> pd.DataFrame:
+def load_data(path: str = BASE_DIR / 'default_credit_card.csv') -> pd.DataFrame:
     df = pd.read_csv(path)
     df = df.rename(columns={
         'ID': 'id',
@@ -106,10 +107,10 @@ def prepare_model():
 
     pipeline.fit(X, y)
 
-    joblib.dump(pipeline, '../credit_model.joblib')
+    joblib.dump(pipeline, BASE_DIR / 'credit_model.joblib')
 
 
-def load_model(path: str = "../credit_model.joblib") -> Pipeline:
+def load_model(path: str = BASE_DIR / 'credit_model.joblib') -> Pipeline:
     return joblib.load(path)
 
 

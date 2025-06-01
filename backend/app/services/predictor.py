@@ -6,7 +6,7 @@ from backend.app.models.schemas import BankClientRequest
 model = model_workflow.load_model()
 
 
-def predict_default(bank_client: BankClientRequest) -> (bool, float):
+def predict_default(bank_client: BankClientRequest) -> tuple[bool, float]:
     data_dict = bank_client.model_dump()
 
     for key, value in data_dict.items():
@@ -19,6 +19,6 @@ def predict_default(bank_client: BankClientRequest) -> (bool, float):
     proba = model.predict_proba(df)[0]
 
     default_flag = bool(pred == 1)
-    confidence_factor = proba[1] if default_flag else proba[0]
+    confidence_factor = float(proba[1] if default_flag else proba[0])
 
     return default_flag, confidence_factor

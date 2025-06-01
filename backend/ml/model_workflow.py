@@ -8,7 +8,7 @@ from sklearn.linear_model import LogisticRegression
 import joblib
 
 
-def load_data(path: str) -> pd.DataFrame:
+def load_data(path: str = '../default_credit_card.csv') -> pd.DataFrame:
     df = pd.read_csv(path)
     df = df.rename(columns={
         'ID': 'id',
@@ -89,7 +89,7 @@ def build_model_pipeline(preprocessor):
 
 
 def prepare_model():
-    df = load_data('../default_credit_card.csv')
+    df = load_data()
     df = clean_data(df)
 
     if 'id' in df.columns:
@@ -107,6 +107,10 @@ def prepare_model():
     pipeline.fit(X, y)
 
     joblib.dump(pipeline, '../credit_model.joblib')
+
+
+def load_model(path: str = "../credit_model.joblib") -> Pipeline:
+    return joblib.load(path)
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@ from typing import Optional, cast
 from sqlalchemy import ColumnElement
 from sqlalchemy.orm import Session
 from backend.app.models.db_models import BankClientPrediction, Sex, Education, Marriage
-from backend.app.models.schemas import BankClientRequest
+from backend.app.models.schemas import BankClientRequest, BankClientResponse
 from backend.app.services.predictor import predict_default
 
 
@@ -28,6 +28,20 @@ def _map_request_to_entity(db: Session, request: BankClientRequest, *, default: 
         confidence=confidence,
         **{k: v for k, v in data.items() if k not in ("sex", "education", "marriage")}
     )
+
+
+def map_entity_to_response(pred_entity: BankClientPrediction) -> BankClientResponse:
+    data = {
+        col: getattr(pred_entity, col)
+        for col in pred_entity.__table__.columns.keys()
+        if col not in ("sex_id", "education_id", "marriage_id")
+    }
+
+    data["sex"] = pred_entity.sex.name
+    data["education"] = pred_entity.education.name
+    data["marriage"] = pred_entity.marriage.name
+
+    return BankClientResponse(**data)
 
 
 def get_prediction_by_id(db: Session, prediction_id: int) -> Optional[BankClientPrediction]:
@@ -62,7 +76,8 @@ def update_prediction(db: Session, prediction_id: int, request: BankClientReques
     updated_entity = _map_request_to_entity(db, request, default=default_flag, confidence=confidence)
 
     for attr in updated_entity.__table__.columns.keys():
-        setattr(pred_entity, attr, getattr(updated_entity, attr))
+        if attr != "id":
+            setattr(pred_entity, attr, getattr(updated_entity, attr))
 
     db.commit()
     db.refresh(pred_entity)

@@ -44,6 +44,11 @@ class Marriage(str, Enum):
         }[self.value]
 
 
+class PaginationParams(BaseModel):
+    page_num: int = Field(1, ge=1)
+    page_size: int = Field(10, ge=1, le=100)
+
+
 class BankClientRequest(BaseModel):
     limit_bal: PositiveInt
     sex: Sex

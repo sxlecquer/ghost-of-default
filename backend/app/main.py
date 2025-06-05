@@ -2,7 +2,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from backend.app.core.db import create_db_tables, get_db
-from backend.app.models.schemas import BankClientRequest, BankClientResponse, PaginationParams
+from backend.app.models.prediction_schemas import BankClientRequest, BankClientResponse
+from backend.app.models.common_schemas import PaginationParams
 from backend.app.repos import predictions
 
 

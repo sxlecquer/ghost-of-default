@@ -2,7 +2,7 @@ from typing import Optional, cast
 from sqlalchemy import ColumnElement
 from sqlalchemy.orm import Session
 from backend.app.models.db_models import BankClientPrediction, Sex, Education, Marriage
-from backend.app.models.schemas import BankClientRequest, BankClientResponse
+from backend.app.models.prediction_schemas import BankClientRequest, BankClientResponse
 from backend.app.services.predictor import predict_default
 
 

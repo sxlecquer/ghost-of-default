@@ -1,6 +1,6 @@
 import pandas as pd
 from backend.ml import model_workflow
-from backend.app.models.schemas import BankClientRequest
+from backend.app.models.prediction_schemas import BankClientRequest
 
 
 model = model_workflow.load_model()

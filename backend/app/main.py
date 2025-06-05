@@ -19,7 +19,7 @@ app = FastAPI(lifespan=lifespan)
 async def get_client(id: int, db: Session = Depends(get_db)):
     pred = predictions.get_prediction_by_id(db, id)
     if not pred:
-        raise HTTPException(status_code=404, detail=f"Client Not Found by ID: {id}")
+        raise HTTPException(status_code=404, detail=f"Client prediction not found by ID: {id}")
     return predictions.map_entity_to_response(pred)
 
 
@@ -39,7 +39,7 @@ async def create_client(request: BankClientRequest, db: Session = Depends(get_db
 async def update_client(id: int, request: BankClientRequest, db: Session = Depends(get_db)):
     new_pred = predictions.update_prediction(db, id, request)
     if not new_pred:
-        raise HTTPException(status_code=404, detail=f"Client Not Found by ID: {id}")
+        raise HTTPException(status_code=404, detail=f"Client prediction not found by ID: {id}")
     return predictions.map_entity_to_response(new_pred)
 
 
@@ -47,4 +47,4 @@ async def update_client(id: int, request: BankClientRequest, db: Session = Depen
 async def delete_client(id: int, db: Session = Depends(get_db)):
     success = predictions.delete_prediction(db, id)
     if not success:
-        raise HTTPException(status_code=404, detail=f"Client Not Found by ID: {id}")
+        raise HTTPException(status_code=404, detail=f"Client prediction not found by ID: {id}")

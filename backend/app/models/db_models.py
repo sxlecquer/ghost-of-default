@@ -61,3 +61,23 @@ class BankClientPrediction(Base):
     sex = relationship("Sex")
     education = relationship("Education")
     marriage = relationship("Marriage")
+
+    actual = relationship(
+        "BankClientActual",
+        uselist=False,
+        back_populates="prediction",
+        cascade="all, delete-orphan"
+    )
+
+
+class BankClientActual(Base):
+    __tablename__ = "client_actuals"
+
+    prediction_id = Column(Integer, ForeignKey("client_predictions.id"), primary_key=True, index=True)
+    actual_default = Column(Boolean, nullable=False)
+
+    prediction = relationship(
+        "BankClientPrediction",
+        back_populates="actual",
+        uselist=False
+    )

@@ -6,10 +6,17 @@ from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.linear_model import LogisticRegression
+from sqlalchemy.orm import sessionmaker
+from backend.app.core.db import engine
 from backend.app.core.utils import BASE_DIR
+from backend.app.models.db_models import ActualOutcome, Prediction
+from backend.app.models.enums import *
 
 
-def load_data(path: str = BASE_DIR / 'default_credit_card.csv') -> pd.DataFrame:
+SessionLocal = sessionmaker(bind=engine)
+
+
+def _load_orig_data(path: str = BASE_DIR / 'default_credit_card.csv') -> pd.DataFrame:
     df = pd.read_csv(path)
     df = df.rename(columns={
         'ID': 'id',
@@ -41,7 +48,34 @@ def load_data(path: str = BASE_DIR / 'default_credit_card.csv') -> pd.DataFrame:
     return df
 
 
-def clean_data(df: pd.DataFrame) -> pd.DataFrame:
+def _load_aug_data() -> pd.DataFrame:
+    session = SessionLocal()
+    rows = []
+    preds = (
+        session.query(Prediction)
+        .join(ActualOutcome)
+        .filter(ActualOutcome.actual_default != None)
+        .all()
+    )
+
+    for pred in preds:
+        row = {}
+        for attr in Prediction.__table__.columns.keys():
+            if attr not in ('sex_id', 'education_id', 'marriage_id'):
+                row[attr] = getattr(pred, attr)
+
+        row['sex'] = Sex(pred.sex.name).code
+        row['education'] = Education(pred.education.name).code
+        row['marriage'] = Marriage(pred.marriage.name).code
+
+        row['default'] = pred.actual_outcome.actual_default
+        rows.append(row)
+
+    session.close()
+    return pd.DataFrame(rows)
+
+
+def _clean_data(df: pd.DataFrame) -> pd.DataFrame:
     df['education'] = df['education'].replace({0: 4, 5: 4, 6: 4})
     df['marriage'] = df['marriage'].replace({0: 3})
 
@@ -56,7 +90,7 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def segregate_features(df: pd.DataFrame, unique_num: int) -> tuple[list[str], list[str]]:
+def _segregate_features(df: pd.DataFrame, unique_num: int) -> tuple[list[str], list[str]]:
     numeric_features = df.select_dtypes(include=[np.number]).columns.tolist()
     categorical_features = df.select_dtypes(include=['object', 'category']).columns.tolist()
 
@@ -66,7 +100,7 @@ def segregate_features(df: pd.DataFrame, unique_num: int) -> tuple[list[str], li
     return numeric_features, categorical_features
 
 
-def build_preprocessor(numeric_features, categorical_features):
+def _build_preprocessor(numeric_features, categorical_features):
     num_transformer = Pipeline(steps=[
         ('impute', SimpleImputer(strategy='median')),
         ('scale', StandardScaler())
@@ -82,32 +116,33 @@ def build_preprocessor(numeric_features, categorical_features):
     ], remainder='drop')
 
 
-def build_model_pipeline(preprocessor):
+def _build_model_pipeline(preprocessor):
     return Pipeline(steps=[
         ('preprocessor', preprocessor),
         ('classifier', LogisticRegression(penalty='l2', C=0.5, solver='lbfgs'))
     ])
 
 
-def prepare_model():
-    df = load_data()
-    df = clean_data(df)
-
-    if 'id' in df.columns:
-        df = df.drop(columns=['id'])
-
-    numeric_features, categorical_features = segregate_features(df.drop(columns=['default']), 12)
-
-    preprocessor = build_preprocessor(numeric_features, categorical_features)
-
-    pipeline = build_model_pipeline(preprocessor)
-
+def _train_pipeline(df: pd.DataFrame):
+    numeric_features, categorical_features = _segregate_features(df.drop(columns=['default']), 12)
+    preprocessor = _build_preprocessor(numeric_features, categorical_features)
+    pipeline = _build_model_pipeline(preprocessor)
     X = df[numeric_features + categorical_features]
     y = df['default']
-
     pipeline.fit(X, y)
-
     joblib.dump(pipeline, BASE_DIR / 'credit_model.joblib')
+
+
+def train_model():
+    df = _clean_data(_load_orig_data()).drop(columns=['id'], errors='ignore')
+    _train_pipeline(df)
+
+
+def retrain_model():
+    orig = _clean_data(_load_orig_data()).drop(columns=['id'], errors='ignore')
+    aug = _load_aug_data().drop(columns=['id', 'confidence'], errors='ignore')
+    combined = pd.concat([orig, aug], ignore_index=True)
+    _train_pipeline(combined)
 
 
 def load_model(path: str = BASE_DIR / 'credit_model.joblib') -> Pipeline:
@@ -115,4 +150,5 @@ def load_model(path: str = BASE_DIR / 'credit_model.joblib') -> Pipeline:
 
 
 if __name__ == "__main__":
-    prepare_model()
+    train_model()
+    # retrain_model()

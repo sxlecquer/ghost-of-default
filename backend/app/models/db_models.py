@@ -23,8 +23,8 @@ class Marriage(Base):
     name = Column(String, unique=True, nullable=False)
 
 
-class BankClientPrediction(Base):
-    __tablename__ = "client_predictions"
+class Prediction(Base):
+    __tablename__ = "predictions"
 
     id = Column(Integer, primary_key=True, index=True)
 
@@ -62,22 +62,22 @@ class BankClientPrediction(Base):
     education = relationship("Education")
     marriage = relationship("Marriage")
 
-    actual = relationship(
-        "BankClientActual",
+    actual_outcome = relationship(
+        "ActualOutcome",
         uselist=False,
         back_populates="prediction",
         cascade="all, delete-orphan"
     )
 
 
-class BankClientActual(Base):
-    __tablename__ = "client_actuals"
+class ActualOutcome(Base):
+    __tablename__ = "actual_outcomes"
 
-    prediction_id = Column(Integer, ForeignKey("client_predictions.id"), primary_key=True, index=True)
+    prediction_id = Column(Integer, ForeignKey("predictions.id"), primary_key=True, index=True)
     actual_default = Column(Boolean, nullable=True, default=None)
 
     prediction = relationship(
-        "BankClientPrediction",
-        back_populates="actual",
+        "Prediction",
+        back_populates="actual_outcome",
         uselist=False
     )

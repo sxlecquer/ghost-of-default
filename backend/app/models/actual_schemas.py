@@ -1,11 +1,11 @@
 from pydantic import BaseModel
 
 
-class ActualResultRequest(BaseModel):
+class ActualOutcomeRequest(BaseModel):
     actual_default: bool
 
 
-class ActualResultResponse(ActualResultRequest):
+class ActualOutcomeResponse(ActualOutcomeRequest):
     prediction_id: int
 
     model_config = {

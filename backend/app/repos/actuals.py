@@ -1,26 +1,26 @@
 from typing import Optional
 from sqlalchemy.orm import Session
-from backend.app.models.db_models import BankClientActual
-from backend.app.models.actual_schemas import ActualResultRequest
+from backend.app.models.db_models import ActualOutcome
+from backend.app.models.actual_schemas import ActualOutcomeRequest
 
 
-def init_actual(db: Session, prediction_id: int) -> BankClientActual:
-    shell = BankClientActual(prediction_id=prediction_id)
+def init_actual(db: Session, prediction_id: int) -> ActualOutcome:
+    shell = ActualOutcome(prediction_id=prediction_id)
     db.add(shell)
     db.commit()
     db.refresh(shell)
     return shell
 
 
-def get_actual_by_prediction_id(db: Session, prediction_id: int) -> Optional[BankClientActual]:
+def get_actual_by_prediction_id(db: Session, prediction_id: int) -> Optional[ActualOutcome]:
     return (
-        db.query(BankClientActual)
-          .filter(BankClientActual.prediction_id == prediction_id)
+        db.query(ActualOutcome)
+          .filter(ActualOutcome.prediction_id == prediction_id)
           .first()
     )
 
 
-def update_actual(db: Session, prediction_id: int, request: ActualResultRequest) -> Optional[BankClientActual]:
+def update_actual(db: Session, prediction_id: int, request: ActualOutcomeRequest) -> Optional[ActualOutcome]:
     actual_entity = get_actual_by_prediction_id(db, prediction_id)
     if actual_entity is None:
         return None

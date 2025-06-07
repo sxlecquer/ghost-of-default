@@ -1,8 +1,8 @@
 from typing import Optional, cast
 from sqlalchemy import ColumnElement
 from sqlalchemy.orm import Session
-from backend.app.models.db_models import BankClientPrediction, Sex, Education, Marriage
-from backend.app.models.prediction_schemas import BankClientRequest, BankClientResponse
+from backend.app.models.db_models import Prediction, Sex, Education, Marriage
+from backend.app.models.prediction_schemas import PredictionRequest, PredictionResponse
 from backend.app.services.predictor import predict_default
 from backend.app.repos import actuals
 
@@ -18,10 +18,10 @@ def _get_or_create_fk(db: Session, entity, name: str):
     return instance
 
 
-def _map_request_to_entity(db: Session, request: BankClientRequest, *, default: bool, confidence: float) -> BankClientPrediction:
+def _map_request_to_entity(db: Session, request: PredictionRequest, *, default: bool, confidence: float) -> Prediction:
     data = request.model_dump()
 
-    return BankClientPrediction(
+    return Prediction(
         sex_id=_get_or_create_fk(db, Sex, data["sex"]).id,
         education_id=_get_or_create_fk(db, Education, data["education"]).id,
         marriage_id=_get_or_create_fk(db, Marriage, data["marriage"]).id,
@@ -31,7 +31,7 @@ def _map_request_to_entity(db: Session, request: BankClientRequest, *, default: 
     )
 
 
-def map_entity_to_response(pred_entity: BankClientPrediction) -> BankClientResponse:
+def map_entity_to_response(pred_entity: Prediction) -> PredictionResponse:
     data = {
         col: getattr(pred_entity, col)
         for col in pred_entity.__table__.columns.keys()
@@ -42,23 +42,23 @@ def map_entity_to_response(pred_entity: BankClientPrediction) -> BankClientRespo
     data["education"] = pred_entity.education.name
     data["marriage"] = pred_entity.marriage.name
 
-    return BankClientResponse(**data)
+    return PredictionResponse(**data)
 
 
-def get_prediction_by_id(db: Session, prediction_id: int) -> Optional[BankClientPrediction]:
+def get_prediction_by_id(db: Session, prediction_id: int) -> Optional[Prediction]:
     return (
-        db.query(BankClientPrediction)
-        .filter(BankClientPrediction.id == prediction_id)
+        db.query(Prediction)
+        .filter(Prediction.id == prediction_id)
         .first()
     )
 
 
-def get_all_predictions(db: Session, page_num: int, page_size: int) -> list[BankClientPrediction]:
+def get_all_predictions(db: Session, page_num: int, page_size: int) -> list[Prediction]:
     offset = (page_num - 1) * page_size
-    return db.query(BankClientPrediction).offset(offset).limit(page_size).all() # type: ignore
+    return db.query(Prediction).offset(offset).limit(page_size).all() # type: ignore
 
 
-def create_prediction(db: Session, request: BankClientRequest) -> BankClientPrediction:
+def create_prediction(db: Session, request: PredictionRequest) -> Prediction:
     default_flag, confidence = predict_default(request)
     pred_entity = _map_request_to_entity(db, request, default=default_flag, confidence=confidence)
 
@@ -71,7 +71,7 @@ def create_prediction(db: Session, request: BankClientRequest) -> BankClientPred
     return pred_entity
 
 
-def update_prediction(db: Session, prediction_id: int, request: BankClientRequest) -> Optional[BankClientPrediction]:
+def update_prediction(db: Session, prediction_id: int, request: PredictionRequest) -> Optional[Prediction]:
     pred_entity = get_prediction_by_id(db, prediction_id)
     if pred_entity is None:
         return None

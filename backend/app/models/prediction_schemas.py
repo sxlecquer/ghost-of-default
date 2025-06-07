@@ -2,7 +2,7 @@ from backend.app.models.enums import Sex, Education, Marriage
 from pydantic import BaseModel, PositiveInt, Field
 
 
-class BankClientRequest(BaseModel):
+class PredictionRequest(BaseModel):
     limit_bal: PositiveInt
     sex: Sex
     education: Education
@@ -31,7 +31,7 @@ class BankClientRequest(BaseModel):
     pay_amount_6: float = Field(ge=0)
 
 
-class BankClientResponse(BankClientRequest):
+class PredictionResponse(PredictionRequest):
     id: int
     default: bool
     confidence: float

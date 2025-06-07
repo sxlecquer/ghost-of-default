@@ -1,13 +1,13 @@
 import pandas as pd
 from backend.ml import model_workflow
-from backend.app.models.prediction_schemas import BankClientRequest
+from backend.app.models.prediction_schemas import PredictionRequest
 
 
 model = model_workflow.load_model()
 
 
-def predict_default(bank_client: BankClientRequest) -> tuple[bool, float]:
-    data_dict = bank_client.model_dump()
+def predict_default(request: PredictionRequest) -> tuple[bool, float]:
+    data_dict = request.model_dump()
 
     for key, value in data_dict.items():
         if hasattr(value, "code"):

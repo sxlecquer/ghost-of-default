@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from backend.app.models.db_models import BankClientPrediction, Sex, Education, Marriage
 from backend.app.models.prediction_schemas import BankClientRequest, BankClientResponse
 from backend.app.services.predictor import predict_default
+from backend.app.repos import actuals
 
 
 def _get_or_create_fk(db: Session, entity, name: str):
@@ -64,6 +65,9 @@ def create_prediction(db: Session, request: BankClientRequest) -> BankClientPred
     db.add(pred_entity)
     db.commit()
     db.refresh(pred_entity)
+
+    actuals.init_actual(db, pred_entity.id)
+
     return pred_entity
 
 

@@ -19,6 +19,6 @@ def predict_default(bank_client: BankClientRequest) -> tuple[bool, float]:
     proba = model.predict_proba(df)[0]
 
     default_flag = bool(pred == 1)
-    confidence_factor = float(proba[1] if default_flag else proba[0])
+    confidence_score = float(proba[1] if default_flag else proba[0])
 
-    return default_flag, confidence_factor
+    return default_flag, confidence_score

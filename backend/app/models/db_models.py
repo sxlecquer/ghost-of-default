@@ -74,7 +74,7 @@ class BankClientActual(Base):
     __tablename__ = "client_actuals"
 
     prediction_id = Column(Integer, ForeignKey("client_predictions.id"), primary_key=True, index=True)
-    actual_default = Column(Boolean, nullable=False)
+    actual_default = Column(Boolean, nullable=True, default=None)
 
     prediction = relationship(
         "BankClientPrediction",

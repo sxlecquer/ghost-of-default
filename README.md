@@ -61,6 +61,12 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+> [!IMPORTANT] 
+> The ASGI server `uvicorn` must be installed separately (it may not appear in `requirements.txt`). Install with: 
+> ```bash
+> pip install uvicorn
+> ```
+
 **5. Configure environment variables:**
 
 Copy the example file `backend/.env.example` to `backend/.env` and adjust it as needed. The settings point to your PostgreSQL database. If you change the DB credentials, update this file accordingly.
